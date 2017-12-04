@@ -19,7 +19,8 @@ use arrows to move hand, circle button to open and close hand
 follows checkerboard, and when it gets near enough, picks it up.
 based on display-checkerboard.l inside catkin_ws/src/robot-programming/dxl-armed-turtlebot/euslisp/
 
-
+# simple-turtle.l
+goes around avoiding obstacles and cliffs
 # memos
 to show compressed image
 ```
