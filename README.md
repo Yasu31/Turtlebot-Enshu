@@ -30,3 +30,8 @@ roslaunch roseus_tutorials checkerboard-detector.launch rect0_size_x:=0.025 rect
 
 roslaunch dxl_armed_turtlebot hsi_color_filter.launch DEFAULT_NAMESPACE:=/camera/depth_registered INPUT:=points h_min:=-20 h_max:=50 s_min:=120
 ```
+
+get position&orientation of end of arm
+```lisp
+(send *dxl-armed-turtlebot* :arm :end-coords :worldrot)
+```
