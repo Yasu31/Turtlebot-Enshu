@@ -1,7 +1,7 @@
 # Turtlebot class experiment
 written in Euslisp
 # demo video (YouTube)
-[![video link](https://github.com/Yasu31/Turtlebot-Enshu/image.png)](https://www.youtube.com/watch?v=OJsFJWH9d7A)
+[![video link](https://raw.githubusercontent.com/Yasu31/Turtlebot-Enshu/master/image.png)](https://www.youtube.com/watch?v=OJsFJWH9d7A)
 # to run euslisp program
 ## run it inside catkin workspace
 1. save program under src/ in beginner_tutorials
@@ -18,7 +18,7 @@ set variable "real" to 1 to move real robot, 0 for simulation only
 minimal.launch and checkerboard-detector.launch must be running in the background (refer to class notes)
 
 ## flowchart
-![flowchart](https://github.com/Yasu31/Turtlebot-Enshu/chanbara.png)
+![flowchart](https://raw.githubusercontent.com/Yasu31/Turtlebot-Enshu/master/chanbara.png)
 # playground.l
 ## (circle)
 moves the hand around in circles using IK
