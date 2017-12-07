@@ -1,6 +1,7 @@
 # Turtlebot class experiment
 written in Euslisp
-
+# demo video (YouTube)
+[![video link](https://github.com/Yasu31/Turtlebot-Enshu/image.png)](https://www.youtube.com/watch?v=OJsFJWH9d7A)
 # to run euslisp program
 ## run it inside catkin workspace
 1. save program under src/ in beginner_tutorials
@@ -10,12 +11,14 @@ written in Euslisp
 1. $roseus playground.l
 
 # chanbara.l
-set variable "demo" to 1 for demo motion, 0 to recognize checkerboard
+set variable "demo" to 1 for demo motion(as seen in video), 0 to recognize checkerboard(checkerboard should be placed at hilt of user's sword)
 
-set variable "real" to 1 to move real robot, 0 for a cool simulation
+set variable "real" to 1 to move real robot, 0 for simulation only
 
 minimal.launch and checkerboard-detector.launch must be running in the background (refer to class notes)
 
+## flowchart
+![flowchart](https://github.com/Yasu31/Turtlebot-Enshu/chanbara.png)
 # playground.l
 ## (circle)
 moves the hand around in circles using IK
