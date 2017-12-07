@@ -1,10 +1,10 @@
 #!/usr/bin/env roseus
 
 ; to move hand in a circular manner.
-(setq demo 0)
+(setq demo 1)
 
 ; to move real robot
-(setq real 1)
+(setq real 0)
 
 (setq *checker-coords* (make-coords :pos (float-vector 0 0 0)))
 ;; robotの初期化
@@ -20,9 +20,16 @@
 (ros::roseus-add-msgs "posedetection_msgs")
 
 (if (not (boundp '*irtviewer*)) (make-irtviewer))
-(setq cube (make-cube 300 30 30))
+(setq cube (make-cube 300 10 10))
+(setq tsuba1 (make-cylinder 30 10))
+(send tsuba1 :move-to (make-coords :pos #f(-90 0 0) :rpy (float-vector 0 (deg2rad 90) 0)))
+(setq cube (body+ cube tsuba1))
 (send cube :set-color :red)
-(setq sword-cube (make-cube 30 30 300))
+
+(setq sword-cube (make-cube 10 10 300))
+(setq tsuba2 (make-cylinder 30 10))
+(send tsuba2 :move-to (make-coords :pos #f(0 0 -90)))
+(setq sword-cube (body+ sword-cube tsuba2))
 (send sword-cube :set-color :blue)
 (objects (list *dxl-armed-turtlebot* cube sword-cube))
 (defvar *root-frame-id* "camera_rgb_frame")
@@ -138,24 +145,24 @@
 
 (setq r 50)
 (setq h (sqrt (- (* 250 250) (* r r))))
+(setq i 0)
 
 (while (ros::ok)
+  (setq i (+ i 1))
  (ros::spin-once)
  (x::window-main-one)
  (if
    (= demo 1)
    (progn
-    (setq clash-coords (make-coords :pos (float-vector 480 100 (+ 500 h))))
-    (setq blade-vector (float-vector (- 0 (* r (cos (deg2rad (* 10 i)))))  (- 0 (* r (sin (deg2rad (* 10 i))))) h)))
-   (progn
-    ; not demo mode
-    ;;(setq their-vector (float-vector -100 100 400))
-    (setq their-vector (transform (send *checker-coords* :rot) (float-vector 300 0 0)))
-    (setq their-pos (v+ (send *checker-coords* :pos) their-vector))
-    ;;(setq their-pos (float-vector (+ 500 (* 200 (cos (deg2rad (* 3 i))))) (* 200 (sin (deg2rad (* 3 i)))) 700))
-    ))
+    (setq *checker-coords* (make-coords :pos (float-vector (+ (* 150 (cos (deg2rad (* 5 i)))) 450) (+ (* 50 (cos (deg2rad (* 8 i)))) 100) (+ (* 100 (cos (deg2rad (* 7 i)))) 400))
+                                        :Euler (list (* 0.7 (cos (deg2rad (* 4 i)))) (/ -3.14 2) (* 0.7 (cos (deg2rad (* 3 i))))))
+          )))
+
+  (setq their-vector (transform (send *checker-coords* :rot) (float-vector 300 0 0)))
+  (setq their-pos (v+ (send *checker-coords* :pos) their-vector))
+
  (cond
-   ((< (elt their-pos 0) 500)
+   ((< (elt their-pos 0) 570)
     (setq state 1))
    (t
     (setq state 0)))
@@ -168,7 +175,8 @@
     (setq y (elt their-pos 1))
     (setq theta (* (/ 180 3.14) (- 0 (atan (/ y x)))))
 
-    (cond
+    (if (= real 1)
+      (cond
       ((> theta 20)
        (send *ri* :go-velocity 0 0 -10)
          (print "move left")
@@ -181,21 +189,11 @@
         (send *ri* :go-velocity 0.05 0 0)
         (print "move forward")
        )
-     ))
+     )))
    ((= state 1)
     ; parry
 
-    (if (= demo 1)
-      (progn
-       ; demo mode
-       (setq hand-c (get-hand-coordinates (send clash-coords :pos) blade-vector))
-       (send *dxl-armed-turtlebot* :inverse-kinematics hand-c :rotation-axis :z
-          ; :thre 70 :rthre (deg2rad 30)
-          :revert-if-fail nil
-          ))
-      (progn
-       ; not demo mode
-       (parry their-pos their-vector)))
+    (parry their-pos their-vector)
 
 
     )

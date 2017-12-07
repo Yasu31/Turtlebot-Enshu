@@ -1,3 +1,6 @@
+# Turtlebot class experiment
+written in Euslisp
+
 # to run euslisp program
 ## run it inside catkin workspace
 1. save program under src/ in beginner_tutorials
@@ -5,6 +8,13 @@
 1. rosrun beginner_tutorials publish-to-topic.l (or roseus publish-to-topic.l)
 ## or, more simply
 1. $roseus playground.l
+
+# chanbara.l
+set variable "demo" to 1 for demo motion, 0 to recognize checkerboard
+
+set variable "real" to 1 to move real robot, 0 for a cool simulation
+
+minimal.launch and checkerboard-detector.launch must be running in the background (refer to class notes)
 
 # playground.l
 ## (circle)
