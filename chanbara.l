@@ -1,10 +1,10 @@
 #!/usr/bin/env roseus
 
 ; to move hand in a circular manner.
-(setq demo 1)
+(setq demo 0)
 
 ; to move real robot
-(setq real 1)
+(setq real 0)
 
 ;; robotの初期化
 (load "package://dxl_armed_turtlebot/euslisp/dxl-armed-turtlebot-interface.l")
@@ -104,6 +104,16 @@
   destination
   )
 
+(defun parry (their-pos their-vector)
+  (let ((my-vector (v* their-vector (float-vector 1 0 0)))
+        )
+    ; invert my-vector if necessary
+    (setq hand-c (get-hand-coordinates their-pos my-vector))
+    (send *dxl-armed-turtlebot* :inverse-kinematics hand-c :rotation-axis :z :revert-if-fail nil)
+
+
+    ))
+
 ; states
 ; 0: default
 ; 1: parry
@@ -113,10 +123,10 @@
 (setq clash-coords (make-coords :pos (float-vector 800 100 700)))
 (setq blade-vector (float-vector 400 0 400))
 
-(defun cc (x y z)
-  (setq clash-coords (make-coords :pos (v+ (send clash-coords :pos) (float-vector x y z)))))
-(defun cb (x y z)
-  (setq blade-vector (v+ blade-vector (float-vector x y z))))
+; (defun cc (x y z)
+;   (setq clash-coords (make-coords :pos (v+ (send clash-coords :pos) (float-vector x y z)))))
+; (defun cb (x y z)
+;   (setq blade-vector (v+ blade-vector (float-vector x y z))))
 
 (setq r 50)
 (setq h (sqrt (- (* 250 250) (* r r))))
@@ -129,33 +139,73 @@
    (progn
     (setq clash-coords (make-coords :pos (float-vector 480 100 (+ 500 h))))
     (setq blade-vector (float-vector (- 0 (* r (cos (deg2rad (* 10 i)))))  (- 0 (* r (sin (deg2rad (* 10 i))))) h)))
-   )
+   (progn
+    ; not demo mode
+    (setq their-vector (float-vector -100 100 400))
+    (setq their-pos (float-vector (+ 500 (* 200 (cos (deg2rad (* 3 i))))) (* 200 (sin (deg2rad (* 3 i)))) 700))
+    ))
+ (cond
+   ((< (elt their-pos 0) 500)
+    (setq state 1))
+   ((< (elt their-pos 0) 700)
+    (setq state 2))
+   (t
+    (setq state 0)))
  (cond
    ((= state 0)
-    ; default
-    )
+    ; go forward
+    ; (mostly copied from follow-checker.l)
+
+    (setq x (elt their-pos 0))
+    (setq y (elt their-pos 1))
+    (setq theta (* (/ 180 3.14) (- 0 (atan (/ y x)))))
+
+    (cond
+      ((> theta 20)
+       (send *ri* :go-velocity 0 0 10)
+         (print "move left")
+       )
+      ((< theta -20)
+        (send *ri* :go-velocity 0 0 -10)
+        (print "move right")
+        )
+      (t
+        (send *ri* :go-velocity 0.05 0 0)
+        (print "move forward")
+       )
+     ))
    ((= state 1)
     ; parry
-    (send cube :move-to clash-coords :world)
-    (setq hand-c (get-hand-coordinates (send clash-coords :pos) blade-vector))
-    (send sword-cube :move-to hand-c :world)
-    (send sword-cube :translate #f(0 0 150))
-    (send *dxl-armed-turtlebot* :inverse-kinematics hand-c :rotation-axis :z
+
+    (if (= demo 1)
+      (progn
+       ; demo mode
+       (setq hand-c (get-hand-coordinates (send clash-coords :pos) blade-vector))
+       (send *dxl-armed-turtlebot* :inverse-kinematics hand-c :rotation-axis :z
           ; :thre 70 :rthre (deg2rad 30)
           :revert-if-fail nil
-          )
-    ; (send *dxl-armed-turtlebot* :inverse-kinematics (make-coords :pos (send hand-c :pos)) :rotation-axis :z :revert-if-fail nil)
+          ))
+      (progn
+       ; not demo mode
+       (parry their-pos their-vector)))
+
 
     )
    ((= state 2)
     ; attack
+
     )
    (t
     ; nothing
     ))
- ; (print (send *dxl-armed-turtlebot* :arm :end-coords :worldrot))
+ ; (send cube :move-to )
+
+ ; draw sword
+ (send sword-cube :move-to (make-coords :pos (send *dxl-armed-turtlebot* :arm :end-coords :worldpos) :rot (send *dxl-armed-turtlebot* :arm :end-coords :worldrot)) :world)
+ (send sword-cube :translate #f(0 0 150))
+ (send cube :move-to (make-coords :pos their-pos) :world)
+
  (send *irtviewer* :draw-objects)
- ; (send *ri* :interpolation-method 'linear)
  (if (= real 1)
    (progn
     (send *ri* :angle-vector (send *dxl-armed-turtlebot* :angle-vector) 100)
