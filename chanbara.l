@@ -4,8 +4,9 @@
 (setq demo 0)
 
 ; to move real robot
-(setq real 0)
+(setq real 1)
 
+(setq *checker-coords* (make-coords :pos (float-vector 0 0 0)))
 ;; robotの初期化
 (load "package://dxl_armed_turtlebot/euslisp/dxl-armed-turtlebot-interface.l")
 (defvar *arm-dof* 7)
@@ -19,7 +20,7 @@
 (ros::roseus-add-msgs "posedetection_msgs")
 
 (if (not (boundp '*irtviewer*)) (make-irtviewer))
-(setq cube (make-cube 30 30 30))
+(setq cube (make-cube 300 30 30))
 (send cube :set-color :red)
 (setq sword-cube (make-cube 30 30 300))
 (send sword-cube :set-color :blue)
@@ -48,6 +49,7 @@
                   (setq *target-rel-coords* cam->obj-coords)
                   (send cam-coords :transform cam->obj-coords)
                   (print (send cam-coords :transform cam->obj-coords))
+                  (setq *checker-coords* (send cam-coords :transform cam->obj-coords))
                   ))
             (send msg :objects))
     ))
@@ -107,6 +109,12 @@
 (defun parry (their-pos their-vector)
   (let ((my-vector (v* their-vector (float-vector 1 0 0)))
         )
+        (setq my-vector (normalize-vector my-vector))
+    (setq len 200)
+    (setq my-vector (float-vector
+                     (* len (elt my-vector 0))
+                     (* len (elt my-vector 1))
+                     (* len (elt my-vector 2))))
     ; invert my-vector if necessary
     (setq hand-c (get-hand-coordinates their-pos my-vector))
     (send *dxl-armed-turtlebot* :inverse-kinematics hand-c :rotation-axis :z :revert-if-fail nil)
@@ -131,7 +139,7 @@
 (setq r 50)
 (setq h (sqrt (- (* 250 250) (* r r))))
 
-(dotimes (i 10000)
+(while (ros::ok)
  (ros::spin-once)
  (x::window-main-one)
  (if
@@ -141,14 +149,14 @@
     (setq blade-vector (float-vector (- 0 (* r (cos (deg2rad (* 10 i)))))  (- 0 (* r (sin (deg2rad (* 10 i))))) h)))
    (progn
     ; not demo mode
-    (setq their-vector (float-vector -100 100 400))
-    (setq their-pos (float-vector (+ 500 (* 200 (cos (deg2rad (* 3 i))))) (* 200 (sin (deg2rad (* 3 i)))) 700))
+    ;;(setq their-vector (float-vector -100 100 400))
+    (setq their-vector (transform (send *checker-coords* :rot) (float-vector 300 0 0)))
+    (setq their-pos (v+ (send *checker-coords* :pos) their-vector))
+    ;;(setq their-pos (float-vector (+ 500 (* 200 (cos (deg2rad (* 3 i))))) (* 200 (sin (deg2rad (* 3 i)))) 700))
     ))
  (cond
    ((< (elt their-pos 0) 500)
     (setq state 1))
-   ((< (elt their-pos 0) 700)
-    (setq state 2))
    (t
     (setq state 0)))
  (cond
@@ -162,11 +170,11 @@
 
     (cond
       ((> theta 20)
-       (send *ri* :go-velocity 0 0 10)
+       (send *ri* :go-velocity 0 0 -10)
          (print "move left")
        )
       ((< theta -20)
-        (send *ri* :go-velocity 0 0 -10)
+        (send *ri* :go-velocity 0 0 10)
         (print "move right")
         )
       (t
@@ -203,7 +211,8 @@
  ; draw sword
  (send sword-cube :move-to (make-coords :pos (send *dxl-armed-turtlebot* :arm :end-coords :worldpos) :rot (send *dxl-armed-turtlebot* :arm :end-coords :worldrot)) :world)
  (send sword-cube :translate #f(0 0 150))
- (send cube :move-to (make-coords :pos their-pos) :world)
+ (send cube :move-to *checker-coords* :world)
+ (send cube :translate #f(150 0 0))
 
  (send *irtviewer* :draw-objects)
  (if (= real 1)
